@@ -27,23 +27,26 @@ namespace DbScraper
             Console.WriteLine("This has temporarily been changed from running once every 3 months to every minute for testing purposes.");
 
             //Starting new SQL connection
-            using(var connection = new SqlConnection())
+            using(var prodConn = new SqlConnection())
             {
-                //Retreiving connection string from environment variables in local.settings.json
-                connection.ConnectionString = Environment.GetEnvironmentVariable("productionDb");
-                connection.Open();
+                //Retreiving production connection string from environment variables in local.settings.json
+                prodConn.ConnectionString = Environment.GetEnvironmentVariable("prodDb");
+                prodConn.Open();
 
                 Console.WriteLine("Success");
 
-                //Defining query and executing
-                var query = "SELECT * FROM Records";
-                var command = new SqlCommand(query, connection);
-                var reader = command.ExecuteReader();
+                //Defining scrape query to find records older than 3 months and executing query
+                var scrapeQuery = @"SELECT *
+                FROM Records
+                WHERE CreatedDate < DATEADD(month, -3, GETDATE())";
+
+                var scrapeCmd = new SqlCommand(scrapeQuery, prodConn);
+                var scrapeReader = scrapeCmd.ExecuteReader();
 
                 //Outputting read data
-                while (reader.Read())
+                while (scrapeReader.Read())
                 {
-                    _logger.LogInformation($"Production Record: {reader["Data"]}, Created: {reader["CreatedDate"]}");
+                    _logger.LogInformation($"Production Record: {scrapeReader["Data"]}, Created: {scrapeReader["CreatedDate"]}");
                 }
             }
         }
