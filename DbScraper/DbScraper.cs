@@ -41,23 +41,31 @@ namespace DbScraper
             _logger.LogInformation($"Found {oldRecords.Count} old records. Here are the old records.");
 
             // Create a new record in the archive database for each old record
-            foreach (var  record in oldRecords)
+            foreach (var record in oldRecords)
             {
                 var archiveRecord = new ArchiveRecord
                 {
                     Data = record.Data,
                     CreatedDate = record.CreatedDate
                 };
-
                 // Add the record to the archive database
                 _archiveDbContext.Records.Add(archiveRecord);
             }
 
             // Save the changes to the archive database
             _archiveDbContext.SaveChanges();
+            _logger.LogInformation($"Successfully archived {oldRecords.Count} old records.");
 
-            _logger.LogInformation("Successfully archived old records.");
 
+            foreach (var record in oldRecords)
+            {
+                // Remove the record from the production database
+                _productionDbContext.Records.Remove(record);
+            }
+
+            // Save the changes to the production database
+            _productionDbContext.SaveChanges();
+            _logger.LogInformation($"Successfully removed {oldRecords.Count} old records from the production database.");
         }
     }
 }
