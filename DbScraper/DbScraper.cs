@@ -5,16 +5,16 @@ using Microsoft.Extensions.Logging;
 
 namespace DbScraper
 {
-    public class Function1
+    public class DbScraper
     {
         private readonly ILogger _logger;
 
-        public Function1(ILoggerFactory loggerFactory)
+        public DbScraper(ILoggerFactory loggerFactory)
         {
-            _logger = loggerFactory.CreateLogger<Function1>();
+            _logger = loggerFactory.CreateLogger<DbScraper>();
         }
 
-        [Function("Function1")]
+        [Function("DbScraper")]
         public void Run([TimerTrigger("* * * * *")] TimerInfo myTimer)
         {
             _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
@@ -27,11 +27,11 @@ namespace DbScraper
             Console.WriteLine("This has temporarily been changed from running once every 3 months to every minute for testing purposes.");
 
             //Starting new SQL connection
-            using(var prodConn = new SqlConnection())
+            using(var productionConn = new SqlConnection())
             {
-                //Retreiving production connection string from environment variables in local.settings.json
-                prodConn.ConnectionString = Environment.GetEnvironmentVariable("prodDb");
-                prodConn.Open();
+                //Retreiving productionuction connection string from environment variables in local.settings.json
+                productionConn.ConnectionString = Environment.GetEnvironmentVariable("productionDb");
+                productionConn.Open();
 
                 Console.WriteLine("Success");
 
@@ -40,13 +40,13 @@ namespace DbScraper
                 FROM Records
                 WHERE CreatedDate < DATEADD(month, -3, GETDATE())";
 
-                var scrapeCmd = new SqlCommand(scrapeQuery, prodConn);
+                var scrapeCmd = new SqlCommand(scrapeQuery, productionConn);
                 var scrapeReader = scrapeCmd.ExecuteReader();
 
                 //Outputting read data
                 while (scrapeReader.Read())
                 {
-                    _logger.LogInformation($"Production Record: {scrapeReader["Data"]}, Created: {scrapeReader["CreatedDate"]}");
+                    _logger.LogInformation($"productionuction Record: {scrapeReader["Data"]}, Created: {scrapeReader["CreatedDate"]}");
                 }
             }
         }
